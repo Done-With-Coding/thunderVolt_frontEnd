@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
+import 'package:thundervolt/views/bottomnav.dart';
 
 
 class OTPLoginVM {
@@ -25,6 +25,8 @@ class OTPLoginVM {
           forceResendingToken: forceResend,
           phoneNumber: '+91${phoneNumber}', // PHONE NUMBER TO SEND OTP
           codeAutoRetrievalTimeout: (String verId) {
+            //Starts the phone number verification process for the given phone number.
+            //Either sends an SMS with a 6 digit code to the phone number specified, or sign's the user in and [verificationCompleted] is called.
             verificationIdh = verId;
           },
           codeSent: (String verificationId, int? resendToken) {
@@ -125,6 +127,10 @@ class OTPLoginVM {
          SharedPreferences prefs = await SharedPreferences.getInstance();
           prefs.setBool('remember', true);
 
+        Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => BottomNav()),
+            (route) => false);
       } else {
         Fluttertoast.showToast(
         msg: "Sign in failed",

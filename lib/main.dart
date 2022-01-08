@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:thundervolt/services/prefService.dart';
 import 'package:thundervolt/utils/constants.dart';
+import 'package:thundervolt/views/bottomnav.dart';
 import 'package:thundervolt/views/login/start.dart';
 
 void main() async {
