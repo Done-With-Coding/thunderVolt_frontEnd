@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1075525116695",
+    "project_id": "thundervolt-a8b20",
+    "storage_bucket": "thundervolt-a8b20.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1075525116695:android:640a35bf00f855caf14d52",
+        "android_client_info": {
+          "package_name": "com.example.thundervolt"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1075525116695-ip0sv7c2is0l3qjd2n68rb1ggj1rnpud.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCU-2CfWU5lIOMXDWYmV0-ia6kcQeT6ZR4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1075525116695-ip0sv7c2is0l3qjd2n68rb1ggj1rnpud.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
