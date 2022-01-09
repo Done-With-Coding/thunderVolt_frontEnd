@@ -26,6 +26,4 @@ ThunderVolt is a app for the the solution for the charging of Electric vehicles 
     prod : user/android/app/src/prod
 
 ## Run App
-
-
-## Build
+`fllutter byuild apk`
