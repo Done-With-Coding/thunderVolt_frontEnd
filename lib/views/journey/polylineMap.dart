@@ -1,24 +1,25 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:provider/provider.dart';
 
 import 'package:syncfusion_flutter_maps/maps.dart';
 import 'package:thundervolt/models/GlobalVar.dart';
 import 'package:thundervolt/models/models.dart';
-import 'package:thundervolt/provider/map_provider.dart';
-import 'package:thundervolt/services/mapService.dart';
 import 'package:thundervolt/utils/constants.dart';
 import 'package:thundervolt/utils/sizeConfig.dart';
-import 'package:thundervolt/views/bookings/booking_complete.dart';
 
-class MapPage extends StatefulWidget {
-  const MapPage({Key? key}) : super(key: key);
+class PolyLineMap extends StatefulWidget {
+  final List<MapLatLng> points;
+  final List<LocationModel> polyLocation;
+  PolyLineMap({Key? key, required this.points, required this.polyLocation})
+      : super(key: key);
 
   @override
-  _MapPageState createState() => _MapPageState();
+  _PolyLineMapState createState() => _PolyLineMapState();
 }
 
-class _MapPageState extends State<MapPage> {
+class _PolyLineMapState extends State<PolyLineMap> {
   MapShapeSource? _dataSource;
   MapTileLayerController? _controller;
   late MapZoomPanBehavior _zoomPanBehavior;
@@ -34,9 +35,9 @@ class _MapPageState extends State<MapPage> {
   double? _slotOpacity;
   int? _tappedMarkedIndex;
 
-  int? _selectedSlot;
-
   List _slotTime = [];
+
+  late List<List<MapLatLng>> polylines;
 
   @override
   void initState() {
@@ -44,12 +45,10 @@ class _MapPageState extends State<MapPage> {
     _canupdateZoomLevel = true;
     _controller = MapTileLayerController();
 
-    DateTime tempTime = DateTime(2021, 1, 1, 12, 0);
-    for (int i = 1; i <= 12; i++) {
-      _slotTime.add(tempTime.hour.toString() +
-          ":" +
-          tempTime.minute.toString().padRight(2, '0'));
-      tempTime = tempTime.add(Duration(minutes: 60));
+    polylines = <List<MapLatLng>>[widget.points];
+
+    for (int i = 1; i <= 24; i++) {
+      _slotTime.add(i);
     }
 
     setInitialLoc();
@@ -71,6 +70,7 @@ class _MapPageState extends State<MapPage> {
         ));
 
     _bottomsheetHeight = SizeConfig.screenHeight! * 365 / 926;
+    _data = List.from(widget.polyLocation);
 
     super.initState();
   }
@@ -80,12 +80,11 @@ class _MapPageState extends State<MapPage> {
     final pos = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.best);
 
-    final mapProvider = Provider.of<MapProvider>(context, listen: false);
+    // final polyLineProvider = Provider.of<MapProvider>(context, listen: false);
 
-    await mapProvider.getMapLocationList(
-        lat: pos.latitude, long: pos.longitude);
+    // await polyLineProvider.getMapLocationList(
+    //     lat: pos.latitude, long: pos.longitude);
     // LocationModel myLoc =
-    _data = List.from(mapProvider.locationList);
 
     currentLoc = MapLatLng(pos.latitude, pos.longitude);
     GlobalCurrentLoc.currentLocLat = pos.latitude;
@@ -116,20 +115,9 @@ class _MapPageState extends State<MapPage> {
       _zoomPanBehavior.zoomLevel = 9;
       _canupdateZoomLevel = false;
     }
-    return Consumer<MapProvider>(builder: (context, mapProvider, child) {
-      if (_data.length == 0)
-        return Center(child: CircularProgressIndicator());
-      else {
-        if (mapProvider.isFetching) {
-          return Center(child: CircularProgressIndicator());
-        } else if (mapProvider.locationList.isEmpty) {
-          return Center(
-            child: CircularProgressIndicator(),
-          );
-        }
-      }
 
-      return Stack(
+    return Scaffold(
+      body: Stack(
         children: [
           Positioned.fill(
             child: SfMaps(layers: [
@@ -139,14 +127,27 @@ class _MapPageState extends State<MapPage> {
                 initialZoomLevel: 9,
                 // initialFocalLatLng: MapLatLng(27.1751, 50.0421),
                 zoomPanBehavior: _zoomPanBehavior,
+                sublayers: [
+                  MapPolylineLayer(
+                      polylines:
+                          List<MapPolyline>.generate(polylines.length, (int i) {
+                    return MapPolyline(
+                      points: polylines[i],
+                    );
+                  }).toSet()
+                      //         polylines.length, (int i) {
+                      //   return MapPolyline(points: polylines[i]);
+                      // })),
+                      )
+                ],
 
                 initialMarkersCount: _data.length,
                 markerBuilder: (BuildContext context, int index) {
                   final double markerSize =
                       _currentSelectedIndex == index ? 40 : 35;
                   return MapMarker(
-                    latitude: mapProvider.locationList[index].latitude!,
-                    longitude: mapProvider.locationList[index].longitude!,
+                    latitude: _data[index].latitude!,
+                    longitude: _data[index].longitude!,
                     alignment: Alignment.bottomCenter,
                     // child: Icon(
                     //   Icons.location_on,
@@ -192,7 +193,7 @@ class _MapPageState extends State<MapPage> {
               child: PageView.builder(
                   controller: _pageController,
                   onPageChanged: _handlepageChange,
-                  itemCount: mapProvider.locationList.length,
+                  itemCount: _data.length,
                   itemBuilder: (context, index) {
                     return Transform.scale(
                       scale: index == _currentSelectedIndex ? 0.9 : 0.7,
@@ -390,19 +391,19 @@ class _MapPageState extends State<MapPage> {
                                                   _slotOpacity == 0
                                                       ? GestureDetector(
                                                           onTap: () async {
-                                                            await mapProvider.navigateToGoogleMaps(
-                                                                sourceLat:
-                                                                    GlobalCurrentLoc
-                                                                        .currentLocLat!,
-                                                                sourcelong:
-                                                                    GlobalCurrentLoc
-                                                                        .currentLocLong!,
-                                                                destlat: _data[
-                                                                        _currentSelectedIndex!]
-                                                                    .latitude!,
-                                                                destlong: _data[
-                                                                        _currentSelectedIndex!]
-                                                                    .longitude!);
+                                                            // await mapProvider.navigateToGoogleMaps(
+                                                            //     sourceLat:
+                                                            //         GlobalCurrentLoc
+                                                            //             .currentLocLat!,
+                                                            //     sourcelong:
+                                                            //         GlobalCurrentLoc
+                                                            //             .currentLocLong!,
+                                                            //     destlat: _data[
+                                                            //             _currentSelectedIndex!]
+                                                            //         .latitude!,
+                                                            //     destlong: _data[
+                                                            //             _currentSelectedIndex!]
+                                                            //         .longitude!);
                                                           },
                                                           child: Container(
                                                             padding: EdgeInsets
@@ -522,64 +523,36 @@ class _MapPageState extends State<MapPage> {
                                                       ),
                                                       itemBuilder:
                                                           (context, index) {
-                                                        return GestureDetector(
-                                                          onTap: () {
-                                                            if (_selectedSlot !=
-                                                                    null &&
-                                                                _selectedSlot ==
-                                                                    index) {
-                                                              _selectedSlot =
-                                                                  null;
-                                                            } else
-                                                              _selectedSlot =
-                                                                  index;
-                                                            setState(() {});
-                                                          },
-                                                          child: Container(
-                                                            padding: EdgeInsets
-                                                                .symmetric(
-                                                              horizontal: SizeConfig
-                                                                      .screenWidth! *
-                                                                  30 /
-                                                                  428,
-                                                            ),
-                                                            decoration:
-                                                                BoxDecoration(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            10),
-                                                                    color: Constant
-                                                                        .lightbgColor,
-                                                                    border:
-                                                                        Border
-                                                                            .all(
-                                                                      color: Constant
-                                                                          .tealColor,
-                                                                    )),
-                                                            height: SizeConfig
-                                                                    .screenHeight! *
-                                                                40 /
-                                                                926,
-                                                            alignment: Alignment
-                                                                .center,
-                                                            child: _selectedSlot !=
-                                                                        null &&
-                                                                    _selectedSlot ==
-                                                                        index
-                                                                ? Icon(
-                                                                    Icons.check,
-                                                                    color: Colors
-                                                                        .white,
-                                                                  )
-                                                                : Text(
-                                                                    _slotTime[
-                                                                            index]
-                                                                        .toString(),
-                                                                    style: TextStyle(
-                                                                        color: Colors
-                                                                            .white),
-                                                                  ),
+                                                        return Container(
+                                                          padding: EdgeInsets
+                                                              .symmetric(
+                                                            horizontal: SizeConfig
+                                                                    .screenWidth! *
+                                                                36 /
+                                                                428,
                                                           ),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              10),
+                                                                  color: Constant
+                                                                      .lightbgColor,
+                                                                  border: Border
+                                                                      .all(
+                                                                    color: Constant
+                                                                        .tealColor,
+                                                                  )),
+                                                          height: SizeConfig
+                                                                  .screenHeight! *
+                                                              40 /
+                                                              926,
+                                                          alignment:
+                                                              Alignment.center,
+                                                          child: Text(
+                                                              _slotTime[index]
+                                                                  .toString()),
                                                         );
                                                       },
                                                     ),
@@ -590,46 +563,36 @@ class _MapPageState extends State<MapPage> {
                                                     child: Align(
                                                       alignment: Alignment
                                                           .bottomCenter,
-                                                      child: GestureDetector(
-                                                        onTap: () {
-                                                          Navigator.of(context).push(
-                                                              MaterialPageRoute(
-                                                                  builder: (_) =>
-                                                                      BookingDone()));
-                                                        },
-                                                        child: Container(
-                                                          height: SizeConfig
+                                                      child: Container(
+                                                        height: SizeConfig
+                                                                .screenHeight! *
+                                                            72 /
+                                                            926,
+                                                        padding: EdgeInsets
+                                                            .symmetric(
+                                                          vertical: SizeConfig
                                                                   .screenHeight! *
-                                                              72 /
+                                                              25 /
                                                               926,
-                                                          padding: EdgeInsets
-                                                              .symmetric(
-                                                            vertical: SizeConfig
-                                                                    .screenHeight! *
-                                                                5 /
-                                                                926,
-                                                          ),
-                                                          decoration:
-                                                              BoxDecoration(
+                                                        ),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: Constant
+                                                              .tealColor,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(14),
+                                                        ),
+                                                        alignment:
+                                                            Alignment.center,
+                                                        child: Text(
+                                                          "Book",
+                                                          style: TextStyle(
                                                             color: Constant
-                                                                .tealColor,
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        14),
-                                                          ),
-                                                          alignment:
-                                                              Alignment.center,
-                                                          child: Text(
-                                                            "Book",
-                                                            style: TextStyle(
-                                                              color: Constant
-                                                                  .bgColor,
-                                                              fontSize: 16,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                            ),
+                                                                .bgColor,
+                                                            fontSize: 16,
+                                                            fontWeight:
+                                                                FontWeight.w700,
                                                           ),
                                                         ),
                                                       ),
@@ -692,7 +655,13 @@ class _MapPageState extends State<MapPage> {
                                                 fontSize: 17),
                                           ),
                                           Text(
-                                            List<String>.generate(3, (i) {
+                                            List<String>.generate(
+                                                min(
+                                                    _data[index]
+                                                        .address!
+                                                        .split(" ")
+                                                        .length,
+                                                    3), (i) {
                                               return _data[index]
                                                   .address!
                                                   .split(" ")[i];
@@ -703,25 +672,6 @@ class _MapPageState extends State<MapPage> {
                                               fontSize: 15,
                                             ),
                                           ),
-                                          Row(
-                                            children: [
-                                              FittedBox(
-                                                child: Icon(
-                                                  Icons.location_on,
-                                                  color: Constant.tealColor,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                              Text(
-                                                "${_data[index].distance!.toInt() / 1000} KM",
-                                                style: TextStyle(
-                                                  color: Constant.tealColor,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            ],
-                                          )
                                         ],
                                       ),
                                     ),
@@ -737,8 +687,8 @@ class _MapPageState extends State<MapPage> {
             ),
           ),
         ],
-      );
-    });
+      ),
+    );
   }
 
   void _handlepageChange(int index) {

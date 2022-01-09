@@ -4,7 +4,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:thundervolt/views/bottomnav.dart';
 
-
 class OTPLoginVM {
   static OTPLoginVM instance = OTPLoginVM._();
   OTPLoginVM._();
@@ -12,6 +11,7 @@ class OTPLoginVM {
   FirebaseAuth _auth = FirebaseAuth.instance;
 
   String? verificationIdh;
+  String? phone;
 
   Future<void> verifyPhone(
       {int forceResend = 0,
@@ -20,6 +20,7 @@ class OTPLoginVM {
       BuildContext? context}) async {
     try {
       print(phoneNumber);
+      phone = phoneNumber;
 
       await _auth.verifyPhoneNumber(
           forceResendingToken: forceResend,
@@ -43,14 +44,13 @@ class OTPLoginVM {
           },
           verificationFailed: (FirebaseAuthException exceptio) {
             Fluttertoast.showToast(
-        msg: "Verification Failed",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.black87,
-        textColor: Colors.white,
-        fontSize: 16.0
-    );
+                msg: "Verification Failed",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.CENTER,
+                timeInSecForIosWeb: 1,
+                backgroundColor: Colors.black87,
+                textColor: Colors.white,
+                fontSize: 16.0);
             print('verification Failed-----');
             print('${exceptio.message}');
           });
@@ -69,27 +69,25 @@ class OTPLoginVM {
       case 'ERROR_INVALID_VERIFICATION_CODE':
         print(error.code);
         Fluttertoast.showToast(
-        msg: "Invalid verification code",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.black87,
-        textColor: Colors.white,
-        fontSize: 16.0
-    );
+            msg: "Invalid verification code",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.black87,
+            textColor: Colors.white,
+            fontSize: 16.0);
         break;
 
       default:
         print(error.message);
         Fluttertoast.showToast(
-        msg: "Something went wrong",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.black87,
-        textColor: Colors.white,
-        fontSize: 16.0
-    );
+            msg: "Something went wrong",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.black87,
+            textColor: Colors.white,
+            fontSize: 16.0);
         break;
     }
   }
@@ -111,21 +109,21 @@ class OTPLoginVM {
         print('SignIn Successfully! ');
         print(authResult);
 
-       Fluttertoast.showToast(
-        msg: "Sign in success",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.black87,
-        textColor: Colors.white,
-        fontSize: 16.0
-    );
+        Fluttertoast.showToast(
+            msg: "Sign in success",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.black87,
+            textColor: Colors.white,
+            fontSize: 16.0);
         print('delay started');
         await Future.delayed(Duration(seconds: 3));
         print('delay ended');
 
-         SharedPreferences prefs = await SharedPreferences.getInstance();
-          prefs.setBool('remember', true);
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setBool('remember', true);
+        prefs.setString("phone", "8200879036");
 
         Navigator.pushAndRemoveUntil(
             context,
@@ -133,14 +131,13 @@ class OTPLoginVM {
             (route) => false);
       } else {
         Fluttertoast.showToast(
-        msg: "Sign in failed",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        timeInSecForIosWeb: 1,
-        backgroundColor: Colors.black87,
-        textColor: Colors.white,
-        fontSize: 16.0
-    );
+            msg: "Sign in failed",
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.CENTER,
+            timeInSecForIosWeb: 1,
+            backgroundColor: Colors.black87,
+            textColor: Colors.white,
+            fontSize: 16.0);
       }
       // await UserDetails.instance.getUserDetails();
     } on FirebaseAuthException catch (e) {

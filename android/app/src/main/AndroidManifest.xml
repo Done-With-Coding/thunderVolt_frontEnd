@@ -2,8 +2,11 @@
     package="com.example.thundervolt">
   <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
   <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+
    <application
-        android:label="thundervolt"
+        android:label="ThunderVolt"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

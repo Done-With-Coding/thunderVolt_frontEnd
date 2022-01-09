@@ -1,5 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:thundervolt/provider/bookingProvider.dart';
+import 'package:thundervolt/provider/map_provider.dart';
+import 'package:thundervolt/provider/polyLineProvider.dart';
 import 'package:thundervolt/services/prefService.dart';
 import 'package:thundervolt/utils/constants.dart';
 import 'package:thundervolt/views/bottomnav.dart';
@@ -20,17 +24,27 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print("Remember value in material app $remember");
-    return MaterialApp(
-      title: 'Flutter Demo',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        bottomSheetTheme: BottomSheetThemeData(
-          backgroundColor: Colors.transparent,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (context) => MapProvider(),
         ),
-        scaffoldBackgroundColor: Constant.bgColor,
-        fontFamily: "CenturyGothic",
+        ChangeNotifierProvider(
+          create: (context) => BookingProvider(),
+        ),
+      ],
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          bottomSheetTheme: BottomSheetThemeData(
+            backgroundColor: Colors.transparent,
+          ),
+          scaffoldBackgroundColor: Constant.bgColor,
+          fontFamily: "CenturyGothic",
+        ),
+        home: remember! ? BottomNav() : StartPage(),
       ),
-      home: remember! ? BottomNav() : StartPage(),
     );
   }
 }

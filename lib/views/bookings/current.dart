@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:thundervolt/models/models.dart';
 import 'package:thundervolt/utils/constants.dart';
 import 'package:thundervolt/utils/sizeConfig.dart';
 import 'package:thundervolt/views/bookings/nobooking.dart';
 
 class Current extends StatefulWidget {
-  const Current({Key? key}) : super(key: key);
+  final List<BookingModel> ? currentBookingList;
+  const Current({Key? key, this.currentBookingList}) : super(key: key);
 
   @override
   _CurrentState createState() => _CurrentState();
@@ -21,7 +23,7 @@ class _CurrentState extends State<Current> {
         ),
         child: ListView.builder(
             shrinkWrap: true,
-            itemCount: 5,
+            itemCount: widget.currentBookingList!.length,
             physics: BouncingScrollPhysics(),
             itemBuilder: (BuildContext context, index) {
               return Container(
@@ -56,7 +58,7 @@ class _CurrentState extends State<Current> {
                             children: [
                               sh(15),
                               Text(
-                                "HP Station 54",
+                                widget.currentBookingList![index].name!,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 17,
@@ -64,7 +66,7 @@ class _CurrentState extends State<Current> {
                                 ),
                               ),
                               Text(
-                                "Piplod athwa road, Surat",
+                                widget.currentBookingList![index].address!,
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 12,
@@ -87,7 +89,6 @@ class _CurrentState extends State<Current> {
                     Align(
                       alignment: Alignment.topRight,
                       child: Container(
-                        
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [

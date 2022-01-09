@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
+import 'package:thundervolt/services/mapService.dart';
 import 'package:thundervolt/utils/constants.dart';
 import 'package:thundervolt/utils/sizeConfig.dart';
 
@@ -17,6 +20,41 @@ class _JourneyState extends State<Journey> {
   DateTime selectedDate = DateTime.now();
   String? dateTime;
   TimeOfDay selectedTime = TimeOfDay(hour: 00, minute: 00);
+  GlobalKey<FormState> _formkey = GlobalKey();
+  TextEditingController _currentLocController = TextEditingController();
+  TextEditingController _destinationController = TextEditingController();
+  TextEditingController _rangeController = TextEditingController();
+  DateTime? picked;
+  TimeOfDay? pickedTime;
+  bool? isDateSet;
+  bool? isTimeSet;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    isDateSet = false;
+    isTimeSet = false;
+  }
+
+  validate(BuildContext context) async {
+    print("validate field");
+    if (_currentLocController.text.trim().isNotEmpty &&
+        _destinationController.text.trim().isNotEmpty &&
+        _rangeController.text.trim().isNotEmpty) {
+      final DateTime dateTime = DateTime(picked!.year, picked!.month,
+          picked!.day, pickedTime!.hour, pickedTime!.minute);
+
+      await MapService.getRouteData(
+          departedAt: dateTime.toString(),
+          destination: _destinationController.text.trim(),
+          origin: _currentLocController.text.trim(),
+          range: _rangeController.text.trim(),
+          context: context);
+    } else {
+      Fluttertoast.showToast(msg: "Fill all the fields");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -128,6 +166,7 @@ class _JourneyState extends State<Journey> {
                           width: SizeConfig.screenWidth! * 200 / 428,
                           // color: Colors.red,
                           child: TextField(
+                            controller: _currentLocController,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -182,6 +221,7 @@ class _JourneyState extends State<Journey> {
                           width: 200,
                           // color: Colors.red,
                           child: TextField(
+                            controller: _destinationController,
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -220,11 +260,15 @@ class _JourneyState extends State<Journey> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () async {
-                        final DateTime? picked = await showDatePicker(
+                        picked = await showDatePicker(
                             context: context,
                             initialDate: selectedDate,
                             firstDate: DateTime.now(),
                             lastDate: DateTime(2023));
+
+                        setState(() {
+                          isDateSet = true;
+                        });
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -246,7 +290,9 @@ class _JourneyState extends State<Journey> {
                               width: SizeConfig.screenWidth! * 20 / 428,
                             ),
                             Text(
-                              "Date",
+                              picked == null
+                                  ? "Date"
+                                  : picked.toString().split(" ").first,
                               style: TextStyle(
                                 color: Color(0xff858890),
                                 fontSize: 14,
@@ -263,8 +309,14 @@ class _JourneyState extends State<Journey> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () async {
-                        final TimeOfDay ? picked = await showTimePicker(
-                            context: context, initialTime: selectedTime);
+                        pickedTime = await showTimePicker(
+                          context: context,
+                          initialTime: selectedTime,
+                        );
+
+                        setState(() {
+                          isTimeSet = true;
+                        });
                       },
                       child: Container(
                         padding: EdgeInsets.symmetric(
@@ -284,7 +336,15 @@ class _JourneyState extends State<Journey> {
                               width: SizeConfig.screenWidth! * 20 / 428,
                             ),
                             Text(
-                              "Time",
+                              pickedTime == null
+                                  ? "Time"
+                                  : pickedTime!.hour.toString() +
+                                      ":" +
+                                      pickedTime!.minute
+                                          .toString()
+                                          .padLeft(2, '0') +
+                                      " " +
+                                      pickedTime!.period.name,
                               style: TextStyle(
                                 color: Color(0xff858890),
                                 fontSize: 14,
@@ -313,6 +373,7 @@ class _JourneyState extends State<Journey> {
               TextFormField(
                 // controller: _,
                 onChanged: (val) {},
+                controller: _rangeController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [
                   // LengthLimitingTextInputFormatter(10),
@@ -342,7 +403,9 @@ class _JourneyState extends State<Journey> {
               Align(
                   alignment: Alignment.bottomCenter,
                   child: GestureDetector(
-                    onTap: () {},
+                    onTap: () async {
+                      await validate(context);
+                    },
                     child: Container(
                       width: double.infinity,
                       padding: EdgeInsets.symmetric(

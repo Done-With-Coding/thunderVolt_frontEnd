@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:thundervolt/models/models.dart';
 import 'package:thundervolt/utils/constants.dart';
 import 'package:thundervolt/utils/sizeConfig.dart';
 
-
-
 class Previous extends StatefulWidget {
-  const Previous({ Key? key }) : super(key: key);
+  final List<BookingModel> ? previousBookingList;
+  const Previous({Key? key,this.previousBookingList}) : super(key: key);
 
   @override
   _PreviousState createState() => _PreviousState();
@@ -14,15 +14,16 @@ class Previous extends StatefulWidget {
 class _PreviousState extends State<Previous> {
   @override
   Widget build(BuildContext context) {
-     SizeConfig().init(context);
+    SizeConfig().init(context);
     return Expanded(
       child: Container(
         padding: EdgeInsets.only(
           top: SizeConfig.screenHeight! * 10 / 926,
         ),
         child: ListView.builder(
+          
             shrinkWrap: true,
-            itemCount: 5,
+            itemCount: widget.previousBookingList!.length,
             physics: BouncingScrollPhysics(),
             itemBuilder: (BuildContext context, index) {
               return Container(
@@ -57,7 +58,7 @@ class _PreviousState extends State<Previous> {
                             children: [
                               sh(15),
                               Text(
-                                "HP Station 54",
+                                widget.previousBookingList![index].name!,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 17,
@@ -65,7 +66,7 @@ class _PreviousState extends State<Previous> {
                                 ),
                               ),
                               Text(
-                                "Piplod athwa road, Surat",
+                                widget.previousBookingList![index].address!,
                                 style: TextStyle(
                                   color: Colors.white70,
                                   fontSize: 12,
@@ -88,7 +89,6 @@ class _PreviousState extends State<Previous> {
                     Align(
                       alignment: Alignment.topRight,
                       child: Container(
-                        
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.end,
                           children: [
